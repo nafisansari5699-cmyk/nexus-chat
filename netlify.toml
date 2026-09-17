@@ -1,0 +1,16 @@
+# ─────────────────────────────────────────────────────────────
+# Netlify: FRONTEND-ONLY deployment of the Nexus PWA.
+#
+# The chat/call backend (Node + Socket.io) can NOT run on Netlify's
+# static CDN — deploy it on Render/Railway/Fly (see README) and point
+# this frontend at it via Settings → "Server URL" inside the app,
+# or hardcode it in public/js/config.js.
+# ─────────────────────────────────────────────────────────────
+
+[build]
+  publish = "public"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

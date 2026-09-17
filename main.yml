@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: End-to-end smoke test (API + sockets + E2EE)
+        run: npm test
+
+      - name: Syntax-check all JS
+        run: |
+          find . -path ./node_modules -prune -o -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Docker build (optional artifact check)
+        run: docker build -t nexus-chat:ci . || true

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b141a" />
+  <meta name="description" content="Nexus — private end-to-end encrypted chat, voice notes and voice/video calls. Install and chat with anyone using just an ID." />
+  <title>Nexus — Private Messenger</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════ AUTH SCREEN ══════════════════════ -->
+  <section id="auth-screen" class="screen">
+    <div class="auth-bg" aria-hidden="true"></div>
+    <div class="auth-card" id="auth-card">
+      <div class="auth-logo">
+        <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#00d4a0"/><stop offset="1" stop-color="#0084ff"/>
+          </linearGradient></defs>
+          <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#lg)"/>
+          <path d="M18 22h28a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H30l-9 8v-8h-3a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4z" fill="#fff"/>
+          <circle cx="27" cy="33" r="2.6" fill="#00a884"/>
+          <circle cx="35" cy="33" r="2.6" fill="#00a884"/>
+          <circle cx="43" cy="33" r="2.6" fill="#00a884"/>
+        </svg>
+        <h1>Nexus</h1>
+        <p class="auth-tag">Private chat & calls — share your ID, not your number</p>
+      </div>
+
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" data-auth-tab="login" role="tab">Log in</button>
+        <button class="auth-tab" data-auth-tab="register" role="tab">Create account</button>
+      </div>
+
+      <form id="login-form" class="auth-form" autocomplete="on">
+        <label class="field">
+          <span>Username</span>
+          <input id="login-username" name="username" type="text" autocomplete="username" required minlength="3" maxlength="20" placeholder="your_username" />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+        </label>
+        <p class="auth-error" hidden></p>
+        <button class="btn btn-primary" type="submit" id="login-submit">Log in</button>
+      </form>
+
+      <form id="register-form" class="auth-form" hidden autocomplete="on">
+        <label class="field">
+          <span>Display name</span>
+          <input id="register-display" type="text" maxlength="40" placeholder="How people see you" />
+        </label>
+        <label class="field">
+          <span>Username</span>
+          <input id="register-username" type="text" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" placeholder="letters, numbers, _" autocomplete="username" />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="register-password" type="password" required minlength="6" placeholder="at least 6 characters" autocomplete="new-password" />
+        </label>
+        <label class="field">
+          <span>Repeat password</span>
+          <input id="register-password2" type="password" required minlength="6" placeholder="repeat password" autocomplete="new-password" />
+        </label>
+        <p class="auth-note">Your password never leaves this device unencrypted — it also locks your end-to-end encryption keys.</p>
+        <p class="auth-error" hidden></p>
+        <button class="btn btn-primary" type="submit" id="register-submit">Create my ID</button>
+      </form>
+
+      <p class="auth-foot">🔒 End-to-end encrypted · 📞 Voice & video · 📱 Installs as an app</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ MAIN APP ══════════════════════ -->
+  <section id="app" class="screen app-shell" hidden>
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <header class="side-head">
+        <button id="btn-profile" class="my-row" title="My profile">
+          <span class="avatar" id="my-avatar" data-initials="N"></span>
+          <span class="my-meta">
+            <span class="my-name" id="my-name">…</span>
+            <span class="my-id" id="my-id-chip" title="Click to copy your ID">ID …</span>
+          </span>
+        </button>
+        <div class="side-actions">
+          <button id="btn-theme" title="Toggle theme">🌙</button>
+          <button id="btn-settings" title="Settings">⚙️</button>
+        </div>
+      </header>
+
+      <div class="search-wrap">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M10 4a6 6 0 104.47 10.03l4.75 4.75 1.41-1.41-4.75-4.75A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
+        <input id="search-input" type="search" placeholder="Search chats" />
+      </div>
+
+      <nav id="chat-list" aria-label="Chats">
+        <div id="chat-list-empty" class="list-empty">
+          <p>No chats yet</p>
+          <span>Share your ID or add someone by theirs to start talking.</span>
+        </div>
+      </nav>
+
+      <button id="btn-new-chat" class="fab" title="Start a new chat">＋</button>
+    </aside>
+
+    <!-- Chat pane -->
+    <main id="chat-pane">
+      <div id="chat-empty" class="chat-empty">
+        <div class="chat-empty-art">
+          <svg viewBox="0 0 80 80" width="88" height="88"><rect x="6" y="10" width="68" height="48" rx="14" fill="none" stroke="currentColor" stroke-width="2.5" opacity=".25"/><path d="M26 40h28M26 30h20M26 50h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".5"/></svg>
+        </div>
+        <h2>Keep your conversations private</h2>
+        <p>Pick a chat on the left, or add someone with their Nexus ID.</p>
+        <p class="lockline">🔒 Messages are end-to-end encrypted on this app — only you and your chat partner hold the keys.</p>
+      </div>
+
+      <div id="chat-active" hidden>
+        <header id="chat-header">
+          <button id="btn-back" class="back-btn" title="Back">‹</button>
+          <span class="avatar" id="peer-avatar"></span>
+          <div class="peer-meta">
+            <div class="peer-name" id="peer-name">…</div>
+            <div class="peer-status" id="peer-status">offline</div>
+          </div>
+          <div class="chat-actions">
+            <button id="btn-call-audio" title="Voice call" aria-label="Voice call">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.6 3 3 3.4 3 4 3h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z"/></svg>
+            </button>
+            <button id="btn-call-video" title="Video call" aria-label="Video call">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 3.5V7l-4 3.5z"/></svg>
+            </button>
+            <button id="btn-chat-info" title="Contact info" aria-label="Contact info">
+              <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" /></svg>
+            </button>
+          </div>
+        </header>
+
+        <div id="messages" role="log" aria-label="Messages"></div>
+
+        <div id="typing-bar" hidden>
+          <span class="avatar avatar-typing" id="typing-avatar"></span>
+          <span class="typing-dots"><i></i><i></i><i></i></span>
+        </div>
+
+        <footer id="composer">
+          <div id="emoji-panel" class="emoji-panel" hidden></div>
+          <div id="attach-menu" class="attach-menu" hidden>
+            <button data-attach="image">
+              <span class="attach-ico img">🖼️</span> Photo
+            </button>
+            <button data-attach="file">
+              <span class="attach-ico file">📎</span> Document
+            </button>
+          </div>
+          <div class="composer-row">
+            <button id="btn-emoji" title="Emoji" aria-label="Emoji">😊</button>
+            <button id="btn-attach" title="Attach" aria-label="Attach file">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M16.5 6.5l-8.4 8.4a2.4 2.4 0 003.4 3.4l8.4-8.4a4.8 4.8 0 10-6.8-6.8L4.8 11.5a7.2 7.2 0 1010.2 10.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <textarea id="composer-input" rows="1" placeholder="Type a message…" maxlength="4000"></textarea>
+            <button id="btn-mic" title="Voice message" aria-label="Record voice message">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.9V22h2v-3.1A7 7 0 0019 12h-2z"/></svg>
+            </button>
+            <button id="btn-send" class="send-btn" title="Send" aria-label="Send message" hidden>
+              <svg class="ico" viewBox="0 0 24 24"><path d="M2.5 21l19-9-19-9v7l13 2-13 2v7z"/></svg>
+            </button>
+          </div>
+          <div id="recording-bar" hidden>
+            <span class="rec-dot"></span>
+            <span id="rec-timer">0:00</span>
+            <span class="rec-hint">Recording voice note…</span>
+            <button id="btn-rec-cancel" class="btn btn-ghost" type="button">Cancel</button>
+            <button id="btn-rec-send" class="btn btn-danger" type="button">Send</button>
+          </div>
+        </footer>
+      </div>
+    </main>
+  </section>
+
+  <!-- ══════════════════════ CALL SCREEN ══════════════════════ -->
+  <section id="call-screen" hidden>
+    <video id="remote-video" autoplay playsinline></video>
+    <div class="call-shade" aria-hidden="true"></div>
+    <div class="call-grid">
+      <div class="call-info">
+        <span class="avatar avatar-xl" id="call-avatar"></span>
+        <h2 id="call-name">…</h2>
+        <p id="call-status">Calling…</p>
+        <p id="call-timer" hidden>0:00</p>
+      </div>
+      <video id="local-video" autoplay playsinline muted></video>
+    </div>
+    <div class="call-controls" id="call-controls">
+      <button id="btn-mute" class="call-btn" title="Mute">🎙️</button>
+      <button id="btn-cam" class="call-btn" title="Camera">📷</button>
+      <button id="btn-hangup" class="call-btn call-btn-danger" title="Hang up">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.6 3 3 3.4 3 4 3h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z"/></svg>
+      </button>
+      <button id="btn-accept" class="call-btn call-btn-accept" title="Accept" hidden>📞</button>
+      <button id="btn-reject" class="call-btn call-btn-danger" title="Reject" hidden>✕</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ MODALS ══════════════════════ -->
+  <div id="modal-root" hidden>
+    <div class="modal-backdrop" data-close-modal="1"></div>
+
+    <!-- My profile -->
+    <div class="modal" id="profile-modal" hidden>
+      <h3>My profile</h3>
+      <div class="modal-avatar-row">
+        <span class="avatar avatar-xl" id="modal-avatar"></span>
+        <div class="field grow"><span>Display name</span><input id="profile-display" maxlength="40" /></div>
+      </div>
+      <label class="field"><span>About</span><input id="profile-about" maxlength="120" /></label>
+      <div class="id-box">
+        <div class="id-row"><span class="id-label">My Nexus ID</span><b id="modal-my-id"></b></div>
+        <div class="id-row"><span class="id-label">My username</span><b id="modal-my-username"></b></div>
+        <div class="share-row">
+          <code id="modal-share-link">…</code>
+          <button class="btn btn-ghost" id="btn-copy-link">Copy link</button>
+        </div>
+      </div>
+      <p class="modal-hint">Share your ID or link — anyone can chat & call you without knowing your phone number.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="1">Close</button>
+        <button class="btn btn-primary" id="btn-save-profile">Save</button>
+      </div>
+    </div>
+
+    <!-- New chat -->
+    <div class="modal" id="new-chat-modal" hidden>
+      <h3>New chat</h3>
+      <label class="field"><span>Nexus ID or username</span>
+        <input id="new-chat-key" placeholder="e.g. 1000001 or alice_w" autocomplete="off" />
+      </label>
+      <div id="new-chat-result" class="new-chat-result" hidden></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="1">Cancel</button>
+        <button class="btn btn-primary" id="btn-find-user">Find</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="modal" id="settings-modal" hidden>
+      <h3>Settings</h3>
+      <label class="field"><span>Server URL</span>
+        <input id="server-url" placeholder="(same origin — leave empty)" />
+      </label>
+      <p class="modal-hint">Only change this when the app is hosted separately from its backend (e.g. Netlify frontend + Render backend). Reload after saving.</p>
+      <label class="check-row"><input type="checkbox" id="notif-toggle" /> Desktop notifications for new messages</label>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="1">Close</button>
+        <button class="btn btn-primary" id="btn-save-settings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" hidden><img id="lightbox-img" alt="Attachment preview" /><button id="lightbox-close">✕</button></div>
+
+  <!-- Toasts -->
+  <div id="toast-root" aria-live="polite"></div>
+
+  <audio id="ringtone" src="assets/ringtone.mp3" loop preload="auto"></audio>
+
+  <script src="js/config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

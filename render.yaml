@@ -1,0 +1,26 @@
+# ── One-click deploy to Render ────────────────────────────────
+# Commit this file, then on https://render.com  New → Blueprint →
+# select the repo. Web service + persistent disk in one click.
+services:
+  - type: web
+    name: nexus-chat
+    runtime: node
+    plan: free # starter+ recommended for real use (free tier sleeps)
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk: # survives restarts & deploys (attached on paid plans)
+      name: nexus-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true # Render generates & stores it securely
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATA_DIR
+        value: /var/data/db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
