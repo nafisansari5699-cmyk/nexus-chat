@@ -9,10 +9,6 @@ services:
     buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
-    disk: # survives restarts & deploys (attached on paid plans)
-      name: nexus-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
